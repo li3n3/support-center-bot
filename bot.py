@@ -4,6 +4,7 @@ import json
 import sys
 import csv
 import base64
+import dateutil
 from time import sleep
 from requests.auth import HTTPBasicAuth
 from dateutil.parser import parse #pip3 install python-dateutil
@@ -15,7 +16,7 @@ s = requests.Session()
 # add creds here and run the script
 email = os.environ['SUPPORT_CENTER_EMAIL']
 zdkey = os.environ['SUPPORT_CENTER_ZDKEY']
-days_ago = 1 # only select articles modified with the past x hours
+days_ago = 1 # only select articles modified with the past x days
 
 client = WebClient(token=os.environ['SLACK_API_TOKEN'])
 
@@ -45,9 +46,16 @@ for page in range(2, pages + 1):
 
 # filter the articles to only select the ones within our date range
 articles_filtered_date = [x for x in article_list if parse(x['updated_at']).replace(tzinfo=None) > past]
+print(articles_filtered_date[0]['html_url'])
+print(articles_filtered_date[0]['title'])
+
 
 # go through each article and extract the vote data
 for article in articles_filtered_date:
+  article_url  = article['html_url']
+  article_title = article['title']
+  article_link = f"<{article_url}|{article_title}>"
+  print(article_link)
   try:
     response = client.chat_postMessage(
         channel='#random',
@@ -63,33 +71,33 @@ for article in articles_filtered_date:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "<" + article['html_url']+ "|" + article['title'] + ">"
+                    "text": article_link
                 }
             },
             {
                 "type": "divider"
-            },
-            {
-                "type": "section",
-                "fields": [
-                    {
-                        "type": "mrkdwn",
-                        "text": "Created At",
-                    },
-                    {
-                        "type": "mrkdwn",
-                        "text": "Created By",
-                    },
-                    {
-                        "type": "mrkdwn",
-                        "text": article['created_at'],
-                    },
-                    {
-                        "type": "mrkdwn",
-                        "text": article['author_id'],
-                    }
-                ]
             }
+            # {
+            #     "type": "section",
+            #     "fields": [
+            #         {
+            #             "type": "mrkdwn",
+            #             "text": "Created At"
+            #         },
+            #         {
+            #             "type": "mrkdwn",
+            #             "text": "Created By"
+            #         },
+            #         {
+            #             "type": "mrkdwn",
+            #             "text": article['created_at']
+            #         },
+            #         {
+            #             "type": "mrkdwn",
+            #             "text": article['author_id']
+            #         }
+            #     ]
+            # }
         ]
     )
     # assert response["message"]["text"] == article['title']

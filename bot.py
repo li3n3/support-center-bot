@@ -75,22 +75,22 @@ for article in articles_filtered_date:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "*Support Center Article Updated*"
+                    "text": "*Support Center Article Updated: *" + article_link
                 }
             },
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": article_link
-                }
-            },
+            # {
+            #     "type": "section",
+            #     "text": {
+            #         "type": "mrkdwn",
+            #         "text": article_link
+            #     }
+            # },
             {
                 "type": "section",
                 "fields": [
                     {
                         "type": "mrkdwn",
-                        "text": f"*Updated*\n{updated_timestamp}"
+                        "text": f"*Updated:*\n{updated_timestamp}"
                     },
                     {
                         "type": "mrkdwn",

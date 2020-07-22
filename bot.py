@@ -46,16 +46,27 @@ for page in range(2, pages + 1):
 
 # filter the articles to only select the ones within our date range
 articles_filtered_date = [x for x in article_list if parse(x['updated_at']).replace(tzinfo=None) > past]
-print(articles_filtered_date[0]['html_url'])
-print(articles_filtered_date[0]['title'])
+# print(articles_filtered_date[0]['html_url'])
+# print(articles_filtered_date[0]['title'])
 
 
 # go through each article and extract the vote data
 for article in articles_filtered_date:
+  # pull out needed details so we can make Slack blocks cleanly
   article_url  = article['html_url']
   article_title = article['title']
   article_link = f"<{article_url}|{article_title}>"
-  print(article_link)
+
+  # do a lot of dark magic so that the timestamps are reasonably human-readable:
+  # grab the created_at timestamp, use fromisoformat to break it apart,
+  # then use ctime to make it nice, like so: Wed Nov  1 15:57:43 2017
+  # otherwise they look like 2017-11-01T15:57:43Z
+  created_timestamp = datetime.datetime.fromisoformat(article['created_at'].rstrip('Z')).ctime()
+  updated_timestamp = datetime.datetime.fromisoformat(article['updated_at'].rstrip('Z')).ctime()
+
+#   troubleshooting friend: uncomment the below line to pop open IPython when this runs
+#    import IPython;IPython.embed()
+
   try:
     response = client.chat_postMessage(
         channel='#random',
@@ -64,7 +75,7 @@ for article in articles_filtered_date:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Support Center Article Updated"
+                    "text": "*Support Center Article Updated*"
                 }
             },
             {
@@ -75,29 +86,21 @@ for article in articles_filtered_date:
                 }
             },
             {
+                "type": "section",
+                "fields": [
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*Updated*\n{updated_timestamp}"
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*Originally Created:*\n{created_timestamp}"
+                    }
+                ]
+            },
+            {
                 "type": "divider"
             }
-            # {
-            #     "type": "section",
-            #     "fields": [
-            #         {
-            #             "type": "mrkdwn",
-            #             "text": "Created At"
-            #         },
-            #         {
-            #             "type": "mrkdwn",
-            #             "text": "Created By"
-            #         },
-            #         {
-            #             "type": "mrkdwn",
-            #             "text": article['created_at']
-            #         },
-            #         {
-            #             "type": "mrkdwn",
-            #             "text": article['author_id']
-            #         }
-            #     ]
-            # }
         ]
     )
     # assert response["message"]["text"] == article['title']
